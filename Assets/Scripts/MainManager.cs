@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
+
 
 public class MainManager : MonoBehaviour
 {
+    public static string playernamestr;
+    public Text playername;
+    public int record;
+    public Text RecordText;
+    public string recordman;
+
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
@@ -22,6 +30,14 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        LoadRecord();
+        RecordText.text = $"Record: {recordman}, {record}";
+
+
+
+        playername.text = playernamestr;
+
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -72,5 +88,50 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        if (record < m_Points)
+        {
+            record = m_Points;
+            recordman = playernamestr;
+
+            RecordText.text = $"Record: {recordman}, {record}";
+           SaveRecord();
+                }
     }
+
+    [System.Serializable]
+    class SaveData
+    {
+        public int record;
+        public string recordman;
+    }
+
+    public void SaveRecord()
+    {
+        SaveData data = new SaveData();
+        data.record = record;
+        data.recordman = recordman;
+
+
+        string json = JsonUtility.ToJson(data);
+
+        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
+    }
+
+    public void LoadRecord()
+    {
+        string path = Application.persistentDataPath + "/savefile.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+            record = data.record;
+            recordman = data.recordman;
+
+        }
+    }
+
+
+
+
 }
